@@ -1,5 +1,8 @@
-# Unpacked release tree (same content as *.tar.zst; keep repo single source)
-camera_*_*/
+# 僅追蹤 *.zst 與根目錄 INSTALL.sh；其餘一律忽略（本機仍保留檔案）
+*
+!*/
+!.gitignore
+!.gitattributes
+!*.zst
+!/INSTALL.sh
 
-# Local logs if any
-record.txt
