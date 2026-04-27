@@ -1,0 +1,5 @@
+# Unpacked release tree (same content as *.tar.zst; keep repo single source)
+camera_*_*/
+
+# Local logs if any
+record.txt
