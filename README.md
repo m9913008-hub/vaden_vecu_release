@@ -7,5 +7,3 @@
 ```bash
 sudo -E ./INSTALL.sh ./camera_<YYYYMMDD>_<build>.tar.zst
 ```
-
-詳見專案內 `INSTALL.sh` 檔頭註解與壓縮檔頂層之 `install.manifest`。
