@@ -68,24 +68,40 @@ _version_for_ini() {
 	printf 'v%s.%s.%s.%s' "$y" "$m" "$d" "$tag"
 }
 
-# 佈建以 DEST.bak.<epoch> 備份，僅保留最新若干筆
+# 佈建以 DEST.bak.<n> 備份（n 由 1 遞增），僅保留最新若干筆（僅計入 1–9 位數之 .bak.n；舊版十位數 .bak.<epoch> 不納入計數與刪除）
+_next_bak_num() {
+	local dest="$1" max_n=0 n p
+	shopt -s nullglob
+	for p in "$dest.bak."*; do
+		n="${p#"${dest}.bak."}"
+		[[ "$n" =~ ^[0-9]{1,9}$ ]] || continue
+		((10#$n > max_n)) && max_n=$((10#$n))
+	done
+	shopt -u nullglob
+	echo $((max_n + 1))
+}
+
 _prune_bak_backups() {
 	local dest="$1"
 	local max_keep="${2:-2}"
-	local p ts oldest oldest_ts
+	local p n oldest oldest_n
 	[[ -n "$dest" ]] || return 0
 	[[ "$max_keep" -ge 1 ]] || return 0
 	while true; do
 		shopt -s nullglob
-		local -a baks=( "$dest.bak."* )
+		local -a baks=()
+		for p in "$dest.bak."*; do
+			n="${p#"${dest}.bak."}"
+			[[ "$n" =~ ^[0-9]{1,9}$ ]] || continue
+			baks+=("$p")
+		done
 		shopt -u nullglob
 		((${#baks[@]} <= max_keep)) && return 0
-		oldest= oldest_ts=
+		oldest= oldest_n=
 		for p in "${baks[@]}"; do
-			ts="${p##*\.bak.}"
-			[[ "$ts" =~ ^[0-9]+$ ]] || continue
-			if [[ -z $oldest_ts ]] || ((10#$ts < 10#$oldest_ts)); then
-				oldest_ts=$ts
+			n="${p#"${dest}.bak."}"
+			if [[ -z $oldest_n ]] || ((10#$n < 10#$oldest_n)); then
+				oldest_n=$n
 				oldest=$p
 			fi
 		done
@@ -318,7 +334,7 @@ MAIN() {
 	# 3.2 佈建專案：保留權限位元，再改屬主為 TARGET_USER
 	install -d -m 0755 -o root -g root -- "$INSTALL_HOME" 2>/dev/null || true
 	if [[ -d "$DEST" ]]; then
-		local bak="${DEST}.bak.$(date +%s)"
+		local bak="${DEST}.bak.$(_next_bak_num "$DEST")"
 		printf '已存在 %s，備份至 %s\n' "$DEST" "$bak" >&2
 		mv -- "$DEST" "$bak" 2>/dev/null || true
 		_prune_bak_backups "$DEST" 2
