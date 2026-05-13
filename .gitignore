@@ -1,4 +1,5 @@
 # 僅追蹤 *.zst 與根目錄 INSTALL.sh；其餘一律忽略（本機仍保留檔案）
+# camera_*.tar.zst 可能超過 GitHub 100MB：請用 Git LFS（見 .gitattributes）
 *
 !*/
 !.gitignore
